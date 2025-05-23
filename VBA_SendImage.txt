@@ -1,0 +1,38 @@
+Sub SendImageToLine()
+    Dim http As Object
+    Dim URL As String
+    Dim imgPath As String
+    Dim fileStream As Object
+    Dim boundary As String
+    Dim CRLF As String
+    Dim body As String
+    Dim byteData() As Byte
+
+    ' URL ของ Render ที่ deploy
+    URL = "https://your-app.onrender.com/send-image"
+    imgPath = "C:\path\to\your\image.jpg" ' เปลี่ยนเป็น path จริง
+
+    Set http = CreateObject("MSXML2.XMLHTTP")
+
+    boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW"
+    CRLF = vbCrLf
+
+    ' สร้าง body multipart/form-data
+    body = "--" & boundary & CRLF
+    body = body & "Content-Disposition: form-data; name=\"image\"; filename=\"" & Dir(imgPath) & "\""" & CRLF
+    body = body & "Content-Type: image/jpeg" & CRLF & CRLF
+
+    Open imgPath For Binary As #1
+    ReDim byteData(LOF(1) - 1)
+    Get #1, , byteData
+    Close #1
+
+    ' ส่ง HTTP POST
+    With http
+        .Open "POST", URL, False
+        .setRequestHeader "Content-Type", "multipart/form-data; boundary=" & boundary
+        .send body & StrConv(byteData, vbUnicode) & CRLF & "--" & boundary & "--" & CRLF
+    End With
+
+    MsgBox "ส่งภาพไป LINE แล้ว"
+End Sub
